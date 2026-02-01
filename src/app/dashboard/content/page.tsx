@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sectionsAPI, Section } from "@/lib/api";
 import { CreateSectionDialog } from "@/components/create-section-dialog";
+import { BulkImportDialog } from "@/components/bulk-import-dialog";
 import { Plus, FileText, Briefcase, FolderOpen, Award } from "lucide-react";
 
 const typeIcons: Record<string, any> = {
@@ -91,8 +92,10 @@ export default function ContentPage() {
           <h1 className="text-2xl font-bold">Content Library</h1>
           <p className="text-muted-foreground">Manage your resume sections</p>
         </div>
-        <CreateSectionDialog onCreated={handleSectionCreated} />
-      </div>
+        <div className="flex gap-2">
+          <BulkImportDialog onImported={(sections) => setSections(prev => [...sections, ...prev])} />
+          <CreateSectionDialog onCreated={handleSectionCreated} />
+        </div>      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
