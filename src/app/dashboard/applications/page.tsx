@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -160,7 +161,7 @@ export default function ApplicationsPage() {
                               </Button>
                             </a>
                           )}
-                          <Button variant="ghost" size="sm">View</Button>
+                          <Button variant="ghost" size="sm" asChild><Link href={`/dashboard/applications/${app.id}`}>View</Link></Button>
                         </div>
                       </TableCell>
                     </TableRow>
