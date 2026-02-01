@@ -1,6 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { sectionsAPI, applicationsAPI, Section, Application } from "@/lib/api";
 
 export default function DashboardPage() {
+  const [sections, setSections] = useState<Section[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [sectionsData, appsData] = await Promise.all([
+          sectionsAPI.list(),
+          applicationsAPI.list(),
+        ]);
+        setSections(sectionsData);
+        setApplications(appsData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
@@ -12,7 +42,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">0</p>
+            <p className="text-3xl font-bold">{sections.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -22,7 +52,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">0</p>
+            <p className="text-3xl font-bold">{applications.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -32,7 +62,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">0</p>
+            <p className="text-3xl font-bold">{applications.length}</p>
           </CardContent>
         </Card>
       </div>
