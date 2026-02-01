@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,8 +63,8 @@ export default function ContentPage() {
   const types = Object.keys(sectionsByType);
 
   // Filter sections based on active tab
-  const filteredSections = activeTab === "all" 
-    ? sections 
+  const filteredSections = activeTab === "all"
+    ? sections
     : sections.filter(s => s.type === activeTab);
 
   // Group filtered sections by key+flavor for display
@@ -119,7 +120,7 @@ export default function ContentPage() {
               {Object.entries(groupedSections).map(([groupKey, versions]) => {
                 const current = versions.find(v => v.is_current) || versions[0];
                 const Icon = typeIcons[current.type] || FileText;
-                
+
                 return (
                   <Card key={groupKey} className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardHeader className="pb-3">
@@ -158,8 +159,10 @@ export default function ContentPage() {
                         <span className="text-xs text-muted-foreground">
                           {versions.length} version{versions.length > 1 ? "s" : ""}
                         </span>
-                        <Button variant="ghost" size="sm">
-                          Edit
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/dashboard/content/${current.type}/${current.key}/${current.flavor}`}>
+                            Edit
+                          </Link>
                         </Button>
                       </div>
                     </CardContent>
