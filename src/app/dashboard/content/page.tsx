@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sectionsAPI, Section } from "@/lib/api";
+import { CreateSectionDialog } from "@/components/create-section-dialog";
 import { Plus, FileText, Briefcase, FolderOpen, Award } from "lucide-react";
 
 const typeIcons: Record<string, any> = {
@@ -28,19 +29,24 @@ export default function ContentPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await sectionsAPI.list();
-        setSections(data);
-      } catch (error) {
-        console.error("Failed to fetch sections:", error);
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = async () => {
+    try {
+      const data = await sectionsAPI.list();
+      setSections(data);
+    } catch (error) {
+      console.error("Failed to fetch sections:", error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
+
+  const handleSectionCreated = (newSection: Section) => {
+    setSections((prev) => [newSection, ...prev]);
+  };
 
   if (loading) {
     return (
@@ -63,9 +69,10 @@ export default function ContentPage() {
   const types = Object.keys(sectionsByType);
 
   // Filter sections based on active tab
-  const filteredSections = activeTab === "all"
-    ? sections
-    : sections.filter(s => s.type === activeTab);
+  const filteredSections =
+    activeTab === "all"
+      ? sections
+      : sections.filter((s) => s.type === activeTab);
 
   // Group filtered sections by key+flavor for display
   const groupedSections = filteredSections.reduce((acc, section) => {
@@ -84,16 +91,13 @@ export default function ContentPage() {
           <h1 className="text-2xl font-bold">Content Library</h1>
           <p className="text-muted-foreground">Manage your resume sections</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Section
-        </Button>
+        <CreateSectionDialog onCreated={handleSectionCreated} />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All ({sections.length})</TabsTrigger>
-          {types.map(type => (
+          {types.map((type) => (
             <TabsTrigger key={type} value={type}>
               {typeLabels[type] || type} ({sectionsByType[type].length})
             </TabsTrigger>
@@ -109,20 +113,20 @@ export default function ContentPage() {
                 <p className="text-muted-foreground mb-4">
                   Create your first section to get started
                 </p>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Section
-                </Button>
+                <CreateSectionDialog onCreated={handleSectionCreated} />
               </CardContent>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(groupedSections).map(([groupKey, versions]) => {
-                const current = versions.find(v => v.is_current) || versions[0];
+                const current = versions.find((v) => v.is_current) || versions[0];
                 const Icon = typeIcons[current.type] || FileText;
 
                 return (
-                  <Card key={groupKey} className="hover:shadow-md transition-shadow cursor-pointer">
+                  <Card
+                    key={groupKey}
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
@@ -130,7 +134,9 @@ export default function ContentPage() {
                             <Icon className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <CardTitle className="text-base">{current.key}</CardTitle>
+                            <CardTitle className="text-base">
+                              {current.key}
+                            </CardTitle>
                             <p className="text-xs text-muted-foreground">
                               {current.type} • {current.flavor}
                             </p>
@@ -146,7 +152,9 @@ export default function ContentPage() {
                     <CardContent>
                       <div className="text-sm text-muted-foreground">
                         {current.type === "experience" && current.content.title && (
-                          <p className="truncate">{current.content.title} @ {current.content.company}</p>
+                          <p className="truncate">
+                            {current.content.title} @ {current.content.company}
+                          </p>
                         )}
                         {current.type === "project" && current.content.name && (
                           <p className="truncate">{current.content.name}</p>
@@ -154,13 +162,18 @@ export default function ContentPage() {
                         {current.type === "skills" && (
                           <p className="truncate">Skills section</p>
                         )}
+                        {current.type === "education" && current.content.degree && (
+                          <p className="truncate">{current.content.degree}</p>
+                        )}
                       </div>
                       <div className="flex items-center justify-between mt-3 pt-3 border-t">
                         <span className="text-xs text-muted-foreground">
                           {versions.length} version{versions.length > 1 ? "s" : ""}
                         </span>
                         <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/dashboard/content/${current.type}/${current.key}/${current.flavor}`}>
+                          <Link
+                            href={`/dashboard/content/${current.type}/${current.key}/${current.flavor}`}
+                          >
                             Edit
                           </Link>
                         </Button>
