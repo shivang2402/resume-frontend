@@ -15,7 +15,7 @@ import { outreachApi } from "@/lib/api/outreach";
 import {
   WritingStyle,
   MessageLength,
-  GenerateMessageResponse,
+  CHAR_LIMITS,
 } from "@/types/outreach";
 import { Application } from "@/types";
 import { ThreadCreateModal } from "./thread-create-modal";
@@ -29,7 +29,6 @@ interface MessageStepperProps {
 type Step = 1 | 2 | 3;
 
 export function MessageStepper({ open, onClose }: MessageStepperProps) {
-  // Step tracking
   const [step, setStep] = useState<Step>(1);
 
   // Step 1 state
@@ -44,7 +43,7 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
   const [selectedAppId, setSelectedAppId] = useState<string | undefined>();
 
   // Step 3 state
-  const [generatedMessage, setGeneratedMessage] = useState<GenerateMessageResponse | null>(null);
+  const [generatedMessage, setGeneratedMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +61,7 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
     setMatchingApps([]);
     setJdText("");
     setSelectedAppId(undefined);
-    setGeneratedMessage(null);
+    setGeneratedMessage("");
     setError(null);
   };
 
@@ -84,7 +83,7 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
         jd_text: jdText || undefined,
         application_id: selectedAppId,
       });
-      setGeneratedMessage(response);
+      setGeneratedMessage(response.message);
       setStep(3);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate message");
@@ -108,23 +107,17 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
   };
 
   const handleRefine = async (instructions: string) => {
-    if (!generatedMessage) return;
-
     setIsRefining(true);
     setError(null);
 
     try {
       const response = await outreachApi.refine({
-        original_message: generatedMessage.message,
-        instructions,
+        original_message: generatedMessage,
+        refinement_instructions: instructions,
         style,
         length,
       });
-      setGeneratedMessage({
-        ...generatedMessage,
-        message: response.message,
-        char_count: response.char_count,
-      });
+      setGeneratedMessage(response.message);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to refine message");
     } finally {
@@ -133,10 +126,11 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
   };
 
   const handleCopy = () => {
-    if (generatedMessage) {
-      navigator.clipboard.writeText(generatedMessage.message);
-    }
+    navigator.clipboard.writeText(generatedMessage);
   };
+
+  const charCount = generatedMessage.length;
+  const charLimit = CHAR_LIMITS[length];
 
   const stepLabels = ["Basic Info", "Context", "Preview"];
 
@@ -223,9 +217,9 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
 
           {!isGenerating && step === 3 && generatedMessage && (
             <StepPreview
-              message={generatedMessage.message}
-              charCount={generatedMessage.char_count}
-              sectionsUsed={generatedMessage.sections_used}
+              message={generatedMessage}
+              charCount={charCount}
+              charLimit={charLimit}
               length={length}
               style={style}
               isRefining={isRefining}
@@ -239,7 +233,6 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Thread Creation Modal */}
       {showThreadModal && generatedMessage && (
         <ThreadCreateModal
           open={showThreadModal}
@@ -253,12 +246,11 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
         />
       )}
 
-      {/* Save Template Modal */}
       {showTemplateModal && generatedMessage && (
         <SaveTemplateModal
           open={showTemplateModal}
           onClose={() => setShowTemplateModal(false)}
-          content={generatedMessage.message}
+          content={generatedMessage}
           style={style}
           length={length}
           onSaved={() => {

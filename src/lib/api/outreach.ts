@@ -14,7 +14,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function getUserId(): string {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("userId") || "";
+  return localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000001";
 }
 
 function getGeminiApiKey(): string | null {
@@ -39,6 +39,7 @@ async function fetchApi<T>(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: "Unknown error" }));
+    console.error("API Error:", error);
     throw new Error(error.detail || `API error: ${res.status}`);
   }
 
@@ -46,7 +47,6 @@ async function fetchApi<T>(
 }
 
 export const outreachApi = {
-  // Templates
   templates: {
     list: () => fetchApi<OutreachTemplate[]>("/api/outreach/templates"),
     create: (data: TemplateCreateRequest) =>
@@ -58,7 +58,6 @@ export const outreachApi = {
       fetchApi<void>(`/api/outreach/templates/${id}`, { method: "DELETE" }),
   },
 
-  // Threads
   threads: {
     list: (activeOnly?: boolean) => {
       const params = activeOnly ? "?active_only=true" : "";
@@ -74,20 +73,31 @@ export const outreachApi = {
       fetchApi<void>(`/api/outreach/threads/${id}`, { method: "DELETE" }),
   },
 
-  // AI Generation
   generate: async (data: GenerateMessageRequest): Promise<GenerateMessageResponse> => {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
       throw new Error("Gemini API key not configured. Please add it in settings.");
     }
 
-    return fetchApi<GenerateMessageResponse>("/api/outreach/generate", {
+    const userId = getUserId();
+
+    const res = await fetch(`${API_BASE}/api/outreach/generate`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
+        "X-User-ID": userId,
         "X-Gemini-API-Key": apiKey,
       },
       body: JSON.stringify(data),
     });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: "Unknown error" }));
+      console.error("Generate API Error:", error);
+      throw new Error(error.detail || `API error: ${res.status}`);
+    }
+
+    return res.json();
   },
 
   refine: async (data: RefineMessageRequest): Promise<RefineMessageResponse> => {
@@ -96,26 +106,38 @@ export const outreachApi = {
       throw new Error("Gemini API key not configured. Please add it in settings.");
     }
 
-    return fetchApi<RefineMessageResponse>("/api/outreach/refine", {
+    const res = await fetch(`${API_BASE}/api/outreach/refine`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "X-Gemini-API-Key": apiKey,
       },
       body: JSON.stringify(data),
     });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: "Unknown error" }));
+      console.error("Refine API Error:", error);
+      throw new Error(error.detail || `API error: ${res.status}`);
+    }
+
+    return res.json();
   },
 
-  // Helper: Check if API key exists
   hasApiKey: (): boolean => {
     return !!getGeminiApiKey();
   },
 
-  // Helper: Search applications by company
   searchApplicationsByCompany: async (company: string): Promise<Application[]> => {
-    const apps = await fetchApi<Application[]>("/api/applications");
-    const searchTerm = company.toLowerCase();
-    return apps.filter((app) =>
-      app.company.toLowerCase().includes(searchTerm)
-    );
+    try {
+      const apps = await fetchApi<Application[]>("/api/applications");
+      const searchTerm = company.toLowerCase();
+      return apps.filter((app) =>
+        app.company.toLowerCase().includes(searchTerm)
+      );
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+      return [];
+    }
   },
 };

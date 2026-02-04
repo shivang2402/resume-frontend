@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,12 +14,12 @@ import {
   Save,
   RefreshCw,
 } from "lucide-react";
-import { MessageLength, WritingStyle, CHAR_LIMITS } from "@/types/outreach";
+import { MessageLength, WritingStyle } from "@/types/outreach";
 
 interface StepPreviewProps {
   message: string;
   charCount: number;
-  sectionsUsed: string[];
+  charLimit: { limit: number; strict: boolean };
   length: MessageLength;
   style: WritingStyle;
   isRefining: boolean;
@@ -34,9 +33,7 @@ interface StepPreviewProps {
 export function StepPreview({
   message,
   charCount,
-  sectionsUsed,
-  length,
-  style,
+  charLimit,
   isRefining,
   onRefine,
   onCopy,
@@ -47,7 +44,7 @@ export function StepPreview({
   const [refineInstructions, setRefineInstructions] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const { limit, strict } = CHAR_LIMITS[length];
+  const { limit, strict } = charLimit;
   const isOverLimit = charCount > limit;
   const charCountColor = isOverLimit
     ? strict
@@ -82,11 +79,6 @@ export function StepPreview({
             <p className="whitespace-pre-wrap">{message}</p>
           </CardContent>
         </Card>
-        {sectionsUsed.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            Used sections: {sectionsUsed.join(", ")}
-          </p>
-        )}
       </div>
 
       <div className="space-y-2">
