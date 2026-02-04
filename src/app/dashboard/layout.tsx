@@ -9,7 +9,8 @@ import {
   Briefcase, 
   Download,
   LogOut,
-  User
+  User,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/content", label: "Content Library", icon: FileText },
   { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
+  { href: "/dashboard/outreach", label: "Outreach", icon: MessageSquare },
   { href: "/dashboard/generate", label: "Generate Resume", icon: Download },
 ];
 
