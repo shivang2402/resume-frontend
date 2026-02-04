@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Key, AlertTriangle } from "lucide-react";
 import {
   WritingStyle,
   MessageLength,
@@ -20,8 +20,11 @@ import {
   STYLE_LABELS,
   LENGTH_LABELS,
 } from "@/types/outreach";
-import { Application } from "@/types";
+import { Application, Section } from "@/types";
 import { outreachApi } from "@/lib/api/outreach";
+import { ApiKeyModal } from "./api-key-modal";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface StepBasicInfoProps {
   company: string;
@@ -54,10 +57,38 @@ export function StepBasicInfo({
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [searchingApps, setSearchingApps] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(true);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [hasSections, setHasSections] = useState(true);
+  const [checkingSections, setCheckingSections] = useState(true);
+
+  const checkApiKey = () => {
+    setHasApiKey(outreachApi.hasApiKey());
+  };
+
+  // Check for resume sections
+  useEffect(() => {
+    const checkSections = async () => {
+      try {
+        const userId = localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000001";
+        const res = await fetch(`${API_BASE}/api/sections`, {
+          headers: { "X-User-ID": userId },
+        });
+        if (res.ok) {
+          const sections: Section[] = await res.json();
+          setHasSections(sections.length > 0);
+        }
+      } catch (err) {
+        console.error("Error checking sections:", err);
+      } finally {
+        setCheckingSections(false);
+      }
+    };
+    checkSections();
+  }, []);
 
   // Load templates on mount
   useEffect(() => {
-    setHasApiKey(outreachApi.hasApiKey());
+    checkApiKey();
     outreachApi.templates
       .list()
       .then(setTemplates)
@@ -92,11 +123,44 @@ export function StepBasicInfo({
   return (
     <div className="space-y-6">
       {!hasApiKey && (
-        <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-md">
-          <AlertCircle className="h-4 w-4" />
+        <div className="flex items-center justify-between p-3 bg-destructive/10 text-destructive rounded-md">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm">Gemini API key required for message generation</span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowApiKeyModal(true)}
+            className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+          >
+            <Key className="mr-2 h-4 w-4" />
+            Add Key
+          </Button>
+        </div>
+      )}
+
+      {!checkingSections && !hasSections && (
+        <div className="flex items-center gap-2 p-3 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 rounded-md">
+          <AlertTriangle className="h-4 w-4" />
           <span className="text-sm">
-            Gemini API key not configured. Add it in localStorage as &quot;gemini_api_key&quot;.
+            No resume sections found. Messages will be less personalized. 
+            <a href="/dashboard/content" className="underline ml-1">Add content</a>
           </span>
+        </div>
+      )}
+
+      {hasApiKey && (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setShowApiKeyModal(true)}
+            className="text-muted-foreground"
+          >
+            <Key className="mr-2 h-4 w-4" />
+            Change API Key
+          </Button>
         </div>
       )}
 
@@ -189,6 +253,15 @@ export function StepBasicInfo({
           Next →
         </Button>
       </div>
+
+      <ApiKeyModal
+        open={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+        onSaved={() => {
+          checkApiKey();
+          setShowApiKeyModal(false);
+        }}
+      />
     </div>
   );
 }
