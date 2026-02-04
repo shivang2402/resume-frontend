@@ -7,25 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageStepper } from "@/components/outreach/message-stepper";
 import { TemplatesList } from "@/components/outreach/templates-list";
-import { OutreachTemplate } from "@/types/outreach";
-
-function ThreadsList() {
-  return (
-    <div className="text-center py-12">
-      <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-      <h3 className="mt-4 text-lg font-semibold">No threads yet</h3>
-      <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">
-        Threads track your ongoing conversations. Create a new message and start a thread to begin tracking.
-      </p>
-    </div>
-  );
-}
+import { ThreadsList } from "@/components/outreach/threads-list";
+import { OutreachTemplate, OutreachThread } from "@/types/outreach";
 
 export default function OutreachPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isStepperOpen, setIsStepperOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<OutreachTemplate | null>(null);
+  const [selectedThreadId, setSelectedThreadId] = useState<string | undefined>();
 
   const currentTab = searchParams.get("tab") || "threads";
 
@@ -48,6 +38,10 @@ export default function OutreachPage() {
   const handleStepperClose = () => {
     setIsStepperOpen(false);
     setSelectedTemplate(null);
+  };
+
+  const handleSelectThread = (thread: OutreachThread) => {
+    router.push(`/dashboard/outreach/threads/${thread.id}`);
   };
 
   return (
@@ -76,7 +70,10 @@ export default function OutreachPage() {
         </TabsList>
 
         <TabsContent value="threads" className="mt-6">
-          <ThreadsList />
+          <ThreadsList 
+            onSelectThread={handleSelectThread}
+            selectedThreadId={selectedThreadId}
+          />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-6">

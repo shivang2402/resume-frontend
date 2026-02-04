@@ -1,6 +1,7 @@
 import {
   OutreachTemplate,
   OutreachThread,
+  OutreachMessage,
   GenerateMessageRequest,
   GenerateMessageResponse,
   RefineMessageRequest,
@@ -47,6 +48,7 @@ async function fetchApi<T>(
 }
 
 export const outreachApi = {
+  // Templates
   templates: {
     list: () => fetchApi<OutreachTemplate[]>("/api/outreach/templates"),
     create: (data: TemplateCreateRequest) =>
@@ -58,6 +60,7 @@ export const outreachApi = {
       fetchApi<void>(`/api/outreach/templates/${id}`, { method: "DELETE" }),
   },
 
+  // Threads
   threads: {
     list: (activeOnly?: boolean) => {
       const params = activeOnly ? "?active_only=true" : "";
@@ -73,6 +76,39 @@ export const outreachApi = {
       fetchApi<void>(`/api/outreach/threads/${id}`, { method: "DELETE" }),
   },
 
+  // Top-level thread methods for components using flat API structure
+  getThreads: (params?: { active_only?: boolean }) => {
+    return fetchApi<OutreachThread[]>(
+      `/api/outreach/threads${params?.active_only ? "?active_only=true" : ""}`
+    );
+  },
+  deleteThread: (id: string) =>
+    fetchApi<void>(`/api/outreach/threads/${id}`, { method: "DELETE" }),
+  updateThread: (id: string, data: Partial<OutreachThread>) =>
+    fetchApi<OutreachThread>(`/api/outreach/threads/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  // Messages
+  getMessages: (threadId: string) =>
+    fetchApi<OutreachMessage[]>(`/api/outreach/threads/${threadId}/messages`),
+
+  addMessage: (
+    threadId: string,
+    data: { direction: string; content: string; message_at?: string; is_raw_dump?: boolean }
+  ) =>
+    fetchApi<OutreachMessage>(`/api/outreach/threads/${threadId}/messages`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteMessage: (threadId: string, messageId: string) =>
+    fetchApi<void>(`/api/outreach/threads/${threadId}/messages/${messageId}`, {
+      method: "DELETE",
+    }),
+
+  // AI Generation
   generate: async (data: GenerateMessageRequest): Promise<GenerateMessageResponse> => {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
@@ -93,7 +129,6 @@ export const outreachApi = {
 
     if (!res.ok) {
       const error = await res.json().catch(() => ({ detail: "Unknown error" }));
-      console.error("Generate API Error:", error);
       throw new Error(error.detail || `API error: ${res.status}`);
     }
 
@@ -117,7 +152,55 @@ export const outreachApi = {
 
     if (!res.ok) {
       const error = await res.json().catch(() => ({ detail: "Unknown error" }));
-      console.error("Refine API Error:", error);
+      throw new Error(error.detail || `API error: ${res.status}`);
+    }
+
+    return res.json();
+  },
+
+  parseConversation: async (rawText: string) => {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      throw new Error("Gemini API key not configured.");
+    }
+
+    const res = await fetch(`${API_BASE}/api/outreach/parse-conversation`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Gemini-API-Key": apiKey,
+      },
+      body: JSON.stringify({ raw_text: rawText }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: "Unknown error" }));
+      throw new Error(error.detail || `API error: ${res.status}`);
+    }
+
+    return res.json();
+  },
+
+  generateReply: async (data: { thread_id: string; instructions?: string }) => {
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      throw new Error("Gemini API key not configured.");
+    }
+
+    const userId = getUserId();
+
+    const res = await fetch(`${API_BASE}/api/outreach/generate-reply`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-ID": userId,
+        "X-Gemini-API-Key": apiKey,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: "Unknown error" }));
       throw new Error(error.detail || `API error: ${res.status}`);
     }
 
