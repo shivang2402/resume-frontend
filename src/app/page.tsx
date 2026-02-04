@@ -103,7 +103,7 @@ export default function Home() {
       <section className="container mx-auto px-6 py-16 text-center">
         <Card className="bg-primary text-primary-foreground">
           <CardContent className="py-12">
-            <h3 className="text-2xl font-bold mb-4">Ready to forge your resume?</h3>
+            <h3 className="text-2xl font-bold mb-4">Ready to forge your resume??</h3>
             <p className="mb-6 opacity-90">
               Start building your content library today.
             </p>
@@ -119,7 +119,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto px-6 text-center text-sm text-muted-foreground">
-          Built for job seekers who value efficiency.
+          Built for job seekers who value efficiency
         </div>
       </footer>
     </main>
