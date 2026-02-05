@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -10,16 +9,21 @@ import {
   Download,
   LogOut,
   User,
-  MessageSquare
+  MessageSquare,
+  Sparkles,
+  Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "sonner";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/content", label: "Content Library", icon: FileText },
   { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
-  { href: "/dashboard/outreach", label: "Outreach", icon: MessageSquare },
   { href: "/dashboard/generate", label: "Generate Resume", icon: Download },
+  { href: "/dashboard/jd-matcher", label: "JD Matcher", icon: Sparkles },
+  { href: "/dashboard/outreach", label: "Outreach", icon: MessageSquare },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 export default function DashboardLayout({
@@ -28,7 +32,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -85,6 +88,8 @@ export default function DashboardLayout({
       <main className="flex-1 p-8 bg-muted/30 overflow-auto">
         {children}
       </main>
+      
+      <Toaster position="top-right" />
     </div>
   );
 }
