@@ -7,13 +7,13 @@ function getGeminiApiKey(): string | null {
 
 function getUserId(): string {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000001";
+  return localStorage.getItem("userId") || "ca99f200-da44-49f7-bf63-35a4fe1cef92";
 }
 
 function getHeaders(includeGeminiKey = false): HeadersInit {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "X-User-ID": getUserId(),
+    "X-User-Id": getUserId(),
   };
   if (includeGeminiKey) {
     const apiKey = getGeminiApiKey();
@@ -37,7 +37,7 @@ export async function analyzeJD(
     throw new Error("Gemini API key not configured. Please add it in settings.");
   }
 
-  const res = await fetch(`${API_URL}/api/v2/jd/analyze`, {
+  const res = await fetch(`${API_URL}/api/jd/analyze`, {
     method: "POST",
     headers: getHeaders(true),
     body: JSON.stringify({
@@ -64,9 +64,9 @@ export async function recalculateKeywords(
   }[],
   tempEdits?: Record<string, any>
 ) {
-  const res = await fetch(`${API_URL}/api/v2/jd/recalculate-keywords`, {
+  const res = await fetch(`${API_URL}/api/jd/recalculate-keywords`, {
     method: "POST",
-    headers: getHeaders(false),
+    headers: getHeaders(true), // Include Gemini key for better results
     body: JSON.stringify({
       job_description: jobDescription,
       selected_sections: selectedSections,
@@ -113,10 +113,10 @@ export async function updateSection(
   content: any
 ) {
   const res = await fetch(
-    `${API_URL}/api/v2/sections/${type}/${key}/${flavor}`,
+    `${API_URL}/api/sections/${type}/${key}/${flavor}`,
     {
       method: "PUT",
-      headers: getHeaders(false),
+      headers: getHeaders(true), // Include Gemini key for tag generation
       body: JSON.stringify({ content }),
     }
   );

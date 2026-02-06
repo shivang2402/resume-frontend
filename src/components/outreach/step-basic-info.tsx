@@ -69,7 +69,7 @@ export function StepBasicInfo({
   useEffect(() => {
     const checkSections = async () => {
       try {
-        const userId = localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000001";
+        const userId = localStorage.getItem("userId") || "ca99f200-da44-49f7-bf63-35a4fe1cef92";
         const res = await fetch(`${API_BASE}/api/sections`, {
           headers: { "X-User-ID": userId },
         });

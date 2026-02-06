@@ -15,7 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { applicationsAPI, Application } from "@/lib/api";
-import { Plus, ExternalLink, Briefcase } from "lucide-react";
+import { ExternalLink, Briefcase } from "lucide-react";
+import { LogApplicationDialog } from "@/components/log-application-dialog";
 
 const statusColors: Record<string, string> = {
   applied: "bg-blue-100 text-blue-800",
@@ -40,17 +41,18 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await applicationsAPI.list();
-        setApplications(data);
-      } catch (error) {
-        console.error("Failed to fetch applications:", error);
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = async () => {
+    try {
+      const data = await applicationsAPI.list();
+      setApplications(data);
+    } catch (error) {
+      console.error("Failed to fetch applications:", error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -79,10 +81,7 @@ export default function ApplicationsPage() {
           <h1 className="text-2xl font-bold">Applications</h1>
           <p className="text-muted-foreground">Track your job applications</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Log Application
-        </Button>
+        <LogApplicationDialog onSuccess={fetchData} />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -121,10 +120,7 @@ export default function ApplicationsPage() {
                 <p className="text-muted-foreground mb-4">
                   Start tracking your job applications
                 </p>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Log Application
-                </Button>
+                <LogApplicationDialog onSuccess={fetchData} />
               </CardContent>
             </Card>
           ) : (
@@ -161,7 +157,9 @@ export default function ApplicationsPage() {
                               </Button>
                             </a>
                           )}
-                          <Button variant="ghost" size="sm" asChild><Link href={`/dashboard/applications/${app.id}`}>View</Link></Button>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/dashboard/applications/${app.id}`}>View</Link>
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -112,6 +112,12 @@ export default function JDMatcherPage() {
   };
 
   const handleGenerate = async () => {
+    // Debug logging
+    console.log("=== GENERATE DEBUG ===");
+    console.log("skills_flavor:", selectedSections.skills_flavor);
+    console.log("experiences:", JSON.stringify(selectedSections.experiences, null, 2));
+    console.log("projects:", JSON.stringify(selectedSections.projects, null, 2));
+
     if (!selectedSections.skills_flavor) {
       toast.error("Please select a skills flavor");
       return;
@@ -124,6 +130,10 @@ export default function JDMatcherPage() {
         experiences: selectedSections.experiences.map((e) => `${e.key}:${e.flavor}:${e.version}`),
         projects: selectedSections.projects.map((p) => `${p.key}:${p.flavor}:${p.version}`),
       };
+
+      // Debug logging
+      console.log("=== RESUME CONFIG ===");
+      console.log(JSON.stringify(resumeConfig, null, 2));
 
       const blob = await generateResume(
         resumeConfig,
@@ -143,6 +153,7 @@ export default function JDMatcherPage() {
       clearAllTempEdits();
       toast.success("Resume generated!");
     } catch (error) {
+      console.error("=== GENERATE ERROR ===", error);
       toast.error("Failed to generate resume");
     } finally {
       setIsGenerating(false);

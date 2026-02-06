@@ -15,7 +15,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function getUserId(): string {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("userId") || "00000000-0000-0000-0000-000000000001";
+  return localStorage.getItem("userId") || "ca99f200-da44-49f7-bf63-35a4fe1cef92";
 }
 
 function getGeminiApiKey(): string | null {
