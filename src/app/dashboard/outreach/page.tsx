@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Plus, MessageSquare, FileText } from "lucide-react";
+import { Plus, MessageSquare, FileText, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageStepper } from "@/components/outreach/message-stepper";
 import { TemplatesList } from "@/components/outreach/templates-list";
 import { ThreadsList } from "@/components/outreach/threads-list";
+import { ContactsList } from "@/components/outreach/contacts-list";
 import { OutreachTemplate, OutreachThread } from "@/types/outreach";
 
 export default function OutreachPage() {
@@ -67,6 +68,10 @@ export default function OutreachPage() {
             <FileText className="h-4 w-4" />
             Templates
           </TabsTrigger>
+          <TabsTrigger value="contacts" className="gap-2">
+            <User className="h-4 w-4" />
+            Contacts
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="threads" className="mt-6">
@@ -78,6 +83,10 @@ export default function OutreachPage() {
 
         <TabsContent value="templates" className="mt-6">
           <TemplatesList onUseTemplate={handleUseTemplate} />
+        </TabsContent>
+
+        <TabsContent value="contacts" className="mt-6">
+          <ContactsList />
         </TabsContent>
       </Tabs>
 

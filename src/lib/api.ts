@@ -249,3 +249,74 @@ export interface UserCreate {
   provider: string;
   provider_id: string;
 }
+// ─── Todos ───────────────────────────────────────────
+export interface Todo {
+  id: string;
+  user_id: string;
+  text: string;
+  is_done: boolean;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export const todosAPI = {
+  list: () => fetchAPI("/api/todos"),
+  create: (text: string) =>
+    fetchAPI("/api/todos", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+  update: (id: string, data: { text?: string; is_done?: boolean; position?: number }) =>
+    fetchAPI(`/api/todos/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string) =>
+    fetchAPI(`/api/todos/${id}`, {
+      method: "DELETE",
+    }),
+  reorder: (todoIds: string[]) =>
+    fetchAPI("/api/todos/reorder/bulk", {
+      method: "PUT",
+      body: JSON.stringify({ todo_ids: todoIds }),
+    }),
+  clearCompleted: () =>
+    fetchAPI("/api/todos/completed/clear", {
+      method: "DELETE",
+    }),
+};
+
+// ─── Contacts ────────────────────────────────────────
+export interface ContactField {
+  label: string;
+  value: string;
+}
+
+export interface Contact {
+  id: string;
+  user_id: string;
+  name: string;
+  fields: ContactField[];
+  created_at: string;
+  updated_at: string;
+}
+
+export const contactsAPI = {
+  list: () => fetchAPI("/api/contacts"),
+  get: (id: string) => fetchAPI(`/api/contacts/${id}`),
+  create: (data: { name: string; fields: ContactField[] }) =>
+    fetchAPI("/api/contacts", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: string, data: { name?: string; fields?: ContactField[] }) =>
+    fetchAPI(`/api/contacts/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string) =>
+    fetchAPI(`/api/contacts/${id}`, {
+      method: "DELETE",
+    }),
+};

@@ -187,8 +187,7 @@ export default function GeneratePage() {
                         <div className="flex-1">
                           <p className="font-medium">{proj.content.name || proj.key}</p>
                           <p className="text-sm text-muted-foreground">
-                            {proj.content.tech} • v{proj.version}
-                          </p>
+                            {proj.content.tech} • {proj.flavor} • v{proj.version}                          </p>
                         </div>
                       </div>
                     );

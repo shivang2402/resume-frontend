@@ -6,10 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { sectionsAPI, Section } from "@/lib/api";
 import { CreateSectionDialog } from "@/components/create-section-dialog";
 import { BulkImportDialog } from "@/components/bulk-import-dialog";
-import { Plus, FileText, Briefcase, FolderOpen, Award } from "lucide-react";
+import { Plus, FileText, Briefcase, FolderOpen, Award, Trash2 } from "lucide-react";
 
 const typeIcons: Record<string, any> = {
   experience: Briefcase,
@@ -47,6 +58,16 @@ export default function ContentPage() {
 
   const handleSectionCreated = (newSection: Section) => {
     setSections((prev) => [newSection, ...prev]);
+  };
+
+  const handleDelete = async (section: Section) => {
+    try {
+      await sectionsAPI.delete(section.type, section.key, section.flavor, section.version);
+      setSections((prev) => prev.filter((s) => s.id !== section.id));
+    } catch (error) {
+      console.error("Failed to delete section:", error);
+      alert("Failed to delete section. Please try again.");
+    }
   };
 
   if (loading) {
@@ -95,7 +116,8 @@ export default function ContentPage() {
         <div className="flex gap-2">
           <BulkImportDialog onImported={(sections) => setSections(prev => [...sections, ...prev])} />
           <CreateSectionDialog onCreated={handleSectionCreated} />
-        </div>      </div>
+        </div>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
@@ -173,13 +195,47 @@ export default function ContentPage() {
                         <span className="text-xs text-muted-foreground">
                           {versions.length} version{versions.length > 1 ? "s" : ""}
                         </span>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link
-                            href={`/dashboard/content/${current.type}/${current.key}/${current.flavor}`}
-                          >
-                            Edit
-                          </Link>
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link
+                              href={`/dashboard/content/${current.type}/${current.key}/${current.flavor}`}
+                            >
+                              Edit
+                            </Link>
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete section?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete{" "}
+                                  <strong>{current.key}</strong> ({current.type} •{" "}
+                                  {current.flavor} • v{current.version}). This action
+                                  cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  onClick={() => handleDelete(current)}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

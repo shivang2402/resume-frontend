@@ -14,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { applicationsAPI, Application } from "@/lib/api";
-import { ArrowLeft, ExternalLink, Trash2, Save } from "lucide-react";
+import { applicationsAPI, generateAPI, Application } from "@/lib/api";
+import { ArrowLeft, ExternalLink, Trash2, Save, Download, Loader2 } from "lucide-react";
 
 const statusLabels: Record<string, string> = {
   applied: "Applied",
@@ -34,6 +34,7 @@ export default function ApplicationDetailPage() {
   const [application, setApplication] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const [status, setStatus] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -75,6 +76,29 @@ export default function ApplicationDetailPage() {
     } catch (error) {
       console.error("Failed to delete:", error);
       alert("Failed to delete application");
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!application?.resume_config) return;
+
+    setRegenerating(true);
+    try {
+      const blob = await generateAPI.generate(application.resume_config);
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `resume_${application.company.toLowerCase().replace(/\s+/g, "_")}_${application.role.toLowerCase().replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Failed to regenerate:", error);
+      alert("Failed to regenerate resume. Make sure the backend is running.");
+    } finally {
+      setRegenerating(false);
     }
   };
 
@@ -161,7 +185,29 @@ export default function ApplicationDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Resume Configuration</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Resume Configuration</CardTitle>
+                {application.resume_config && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRegenerate}
+                    disabled={regenerating}
+                  >
+                    {regenerating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Regenerate PDF
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <pre className="bg-muted p-4 rounded-md text-sm overflow-auto">
