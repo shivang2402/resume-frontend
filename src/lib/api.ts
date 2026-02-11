@@ -320,3 +320,36 @@ export const contactsAPI = {
       method: "DELETE",
     }),
 };
+
+// ─── Resume Presets ──────────────────────────────────
+export interface ResumePreset {
+  id: string;
+  user_id: string;
+  name: string;
+  resume_config: {
+    experiences: string[];
+    projects: string[];
+    skills?: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export const presetsAPI = {
+  list: () => fetchAPI("/api/resume-presets"),
+  get: (id: string) => fetchAPI(`/api/resume-presets/${id}`),
+  create: (data: { name: string; resume_config: any }) =>
+    fetchAPI("/api/resume-presets", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  update: (id: string, data: { name?: string; resume_config?: any }) =>
+    fetchAPI(`/api/resume-presets/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string) =>
+    fetchAPI(`/api/resume-presets/${id}`, {
+      method: "DELETE",
+    }),
+};
