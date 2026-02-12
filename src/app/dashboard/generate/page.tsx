@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,9 +41,70 @@ import {
   Pencil,
   Trash2,
   BookMarked,
-  Plus,
+  GripVertical,
 } from "lucide-react";
 
+// ─── Native Drag & Drop Hook ───────────────────────────────────
+function useDragReorder<T>(
+  items: T[],
+  setItems: React.Dispatch<React.SetStateAction<T[]>>
+) {
+  const dragIdx = useRef<number | null>(null);
+  const overIdx = useRef<number | null>(null);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  const onDragStart = (index: number) => (e: React.DragEvent) => {
+    dragIdx.current = index;
+    setDraggingIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    // Make drag image slightly transparent
+    if (e.currentTarget instanceof HTMLElement) {
+      e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
+    }
+  };
+
+  const onDragOver = (index: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    overIdx.current = index;
+    setOverIndex(index);
+  };
+
+  const onDragEnd = () => {
+    const from = dragIdx.current;
+    const to = overIdx.current;
+
+    if (from !== null && to !== null && from !== to) {
+      setItems((prev) => {
+        const result = [...prev];
+        const [removed] = result.splice(from, 1);
+        result.splice(to, 0, removed);
+        return result;
+      });
+    }
+
+    dragIdx.current = null;
+    overIdx.current = null;
+    setDraggingIndex(null);
+    setOverIndex(null);
+  };
+
+  const onDragLeave = () => {
+    setOverIndex(null);
+  };
+
+  return {
+    draggingIndex,
+    overIndex,
+    onDragStart,
+    onDragOver,
+    onDragEnd,
+    onDragLeave,
+  };
+}
+
+// ─── Main Component ────────────────────────────────────────────
 export default function GeneratePage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [presets, setPresets] = useState<ResumePreset[]>([]);
@@ -51,28 +112,34 @@ export default function GeneratePage() {
   const [generating, setGenerating] = useState(false);
   const [generatingPresetId, setGeneratingPresetId] = useState<string | null>(null);
 
-  // Selected sections (manual mode)
+  // Ordered lists (maintains drag order)
+  const [orderedExperiences, setOrderedExperiences] = useState<Section[]>([]);
+  const [orderedProjects, setOrderedProjects] = useState<Section[]>([]);
+
+  // Selected sections
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
-  // Job info (optional)
+  // Job info
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [location, setLocation] = useState("");
   const [jobUrl, setJobUrl] = useState("");
 
-  // Save preset dialog
+  // Preset dialogs
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [editingPreset, setEditingPreset] = useState<ResumePreset | null>(null);
-
-  // Quick download dialog (for presets)
   const [quickDownloadOpen, setQuickDownloadOpen] = useState(false);
   const [quickPreset, setQuickPreset] = useState<ResumePreset | null>(null);
   const [qdCompany, setQdCompany] = useState("");
   const [qdRole, setQdRole] = useState("");
   const [qdLocation, setQdLocation] = useState("");
   const [qdJobUrl, setQdJobUrl] = useState("");
+
+  // Drag hooks
+  const expDrag = useDragReorder(orderedExperiences, setOrderedExperiences);
+  const projDrag = useDragReorder(orderedProjects, setOrderedProjects);
 
   useEffect(() => {
     async function fetchData() {
@@ -83,6 +150,15 @@ export default function GeneratePage() {
         ]);
         setSections(sectionData);
         setPresets(presetData);
+
+        const exp = sectionData.filter(
+          (s: Section) => s.type === "experience" && s.is_current
+        );
+        const proj = sectionData.filter(
+          (s: Section) => s.type === "project" && s.is_current
+        );
+        setOrderedExperiences(exp);
+        setOrderedProjects(proj);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       } finally {
@@ -92,8 +168,7 @@ export default function GeneratePage() {
     fetchData();
   }, []);
 
-  const experiences = sections.filter((s) => s.type === "experience" && s.is_current);
-  const projects = sections.filter((s) => s.type === "project" && s.is_current);
+  const getRef = (s: Section) => `${s.key}:${s.flavor}:${s.version}`;
 
   const toggleExperience = (ref: string) => {
     setSelectedExperiences((prev) =>
@@ -122,7 +197,6 @@ export default function GeneratePage() {
     document.body.removeChild(a);
   };
 
-  // Manual generate
   const handleGenerate = async () => {
     if (selectedExperiences.length === 0 && selectedProjects.length === 0) {
       alert("Please select at least one experience or project");
@@ -130,9 +204,16 @@ export default function GeneratePage() {
     }
     setGenerating(true);
     try {
+      const orderedSelectedExp = orderedExperiences
+        .map(getRef)
+        .filter((ref) => selectedExperiences.includes(ref));
+      const orderedSelectedProj = orderedProjects
+        .map(getRef)
+        .filter((ref) => selectedProjects.includes(ref));
+
       const resumeConfig = {
-        experiences: selectedExperiences,
-        projects: selectedProjects,
+        experiences: orderedSelectedExp,
+        projects: orderedSelectedProj,
       };
       const job = company
         ? { company, role, location, job_url: jobUrl || undefined }
@@ -146,7 +227,6 @@ export default function GeneratePage() {
     }
   };
 
-  // Preset quick download
   const handlePresetDownload = (preset: ResumePreset) => {
     setQuickPreset(preset);
     setQdCompany("");
@@ -173,13 +253,19 @@ export default function GeneratePage() {
     }
   };
 
-  // Save current selection as preset
   const handleSavePreset = async () => {
     if (!presetName.trim()) return;
     try {
+      const orderedSelectedExp = orderedExperiences
+        .map(getRef)
+        .filter((ref) => selectedExperiences.includes(ref));
+      const orderedSelectedProj = orderedProjects
+        .map(getRef)
+        .filter((ref) => selectedProjects.includes(ref));
+
       const config = {
-        experiences: selectedExperiences,
-        projects: selectedProjects,
+        experiences: orderedSelectedExp,
+        projects: orderedSelectedProj,
       };
       if (editingPreset) {
         const updated = await presetsAPI.update(editingPreset.id, {
@@ -202,13 +288,29 @@ export default function GeneratePage() {
     }
   };
 
-  // Load preset into manual selection
   const handleLoadPreset = (preset: ResumePreset) => {
-    setSelectedExperiences(preset.resume_config.experiences || []);
-    setSelectedProjects(preset.resume_config.projects || []);
+    const presetExp = preset.resume_config.experiences || [];
+    const presetProj = preset.resume_config.projects || [];
+
+    setSelectedExperiences(presetExp);
+    setSelectedProjects(presetProj);
+
+    setOrderedExperiences((prev) => {
+      const selected = presetExp
+        .map((ref: string) => prev.find((s) => getRef(s) === ref))
+        .filter(Boolean) as Section[];
+      const unselected = prev.filter((s) => !presetExp.includes(getRef(s)));
+      return [...selected, ...unselected];
+    });
+    setOrderedProjects((prev) => {
+      const selected = presetProj
+        .map((ref: string) => prev.find((s) => getRef(s) === ref))
+        .filter(Boolean) as Section[];
+      const unselected = prev.filter((s) => !presetProj.includes(getRef(s)));
+      return [...selected, ...unselected];
+    });
   };
 
-  // Edit preset — load into selections, open save dialog
   const handleEditPreset = (preset: ResumePreset) => {
     handleLoadPreset(preset);
     setEditingPreset(preset);
@@ -244,11 +346,11 @@ export default function GeneratePage() {
       <div>
         <h1 className="text-2xl font-bold">Generate Resume</h1>
         <p className="text-muted-foreground">
-          Select sections and generate a tailored PDF resume
+          Select sections and drag to reorder for your tailored PDF resume
         </p>
       </div>
 
-      {/* Presets Section */}
+      {/* Presets */}
       {presets.length > 0 && (
         <Card>
           <CardHeader>
@@ -265,21 +367,12 @@ export default function GeneratePage() {
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-medium">{preset.name}</h3>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => handleEditPreset(preset)}
-                        >
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditPreset(preset)}>
                           <Pencil className="h-3 w-3" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive hover:text-destructive"
-                            >
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
@@ -308,26 +401,11 @@ export default function GeneratePage() {
                       <p>{(preset.resume_config.projects || []).length} projects</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handlePresetDownload(preset)}
-                        disabled={generatingPresetId === preset.id}
-                      >
-                        {generatingPresetId === preset.id ? (
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        ) : (
-                          <Download className="h-3 w-3 mr-1" />
-                        )}
+                      <Button size="sm" className="flex-1" onClick={() => handlePresetDownload(preset)} disabled={generatingPresetId === preset.id}>
+                        {generatingPresetId === preset.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Download className="h-3 w-3 mr-1" />}
                         Download
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleLoadPreset(preset)}
-                      >
-                        Load
-                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleLoadPreset(preset)}>Load</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -348,25 +426,39 @@ export default function GeneratePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {experiences.length === 0 ? (
+              {orderedExperiences.length === 0 ? (
                 <p className="text-muted-foreground text-sm">
                   No experiences found. Create some in the Content Library.
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {experiences.map((exp) => {
-                    const ref = `${exp.key}:${exp.flavor}:${exp.version}`;
+                <div className="space-y-2">
+                  {orderedExperiences.map((exp, index) => {
+                    const ref = getRef(exp);
+                    const isDragging = expDrag.draggingIndex === index;
+                    const isOver = expDrag.overIndex === index && expDrag.draggingIndex !== index;
                     return (
                       <div
                         key={exp.id}
-                        className="flex items-start gap-3 p-3 rounded-md border hover:bg-muted/50 cursor-pointer"
-                        onClick={() => toggleExperience(ref)}
+                        draggable
+                        onDragStart={expDrag.onDragStart(index)}
+                        onDragOver={expDrag.onDragOver(index)}
+                        onDragEnd={expDrag.onDragEnd}
+                        onDragLeave={expDrag.onDragLeave}
+                        className={`flex items-start gap-3 p-3 rounded-md border hover:bg-muted/50 transition-all select-none ${
+                          isDragging ? "opacity-40 scale-[0.98]" : ""
+                        } ${isOver ? "border-primary border-dashed bg-primary/5" : ""}`}
                       >
+                        <div className="mt-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+                          <GripVertical className="h-5 w-5" />
+                        </div>
                         <Checkbox
                           checked={selectedExperiences.includes(ref)}
                           onCheckedChange={() => toggleExperience(ref)}
                         />
-                        <div className="flex-1">
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => toggleExperience(ref)}
+                        >
                           <p className="font-medium">{exp.content.title || exp.key}</p>
                           <p className="text-sm text-muted-foreground">
                             {exp.content.company} • {exp.flavor} • v{exp.version}
@@ -389,28 +481,45 @@ export default function GeneratePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {projects.length === 0 ? (
+              {orderedProjects.length === 0 ? (
                 <p className="text-muted-foreground text-sm">
                   No projects found. Create some in the Content Library.
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {projects.map((proj) => {
-                    const ref = `${proj.key}:${proj.flavor}:${proj.version}`;
+                <div className="space-y-2">
+                  {orderedProjects.map((proj, index) => {
+                    const ref = getRef(proj);
+                    const isDragging = projDrag.draggingIndex === index;
+                    const isOver = projDrag.overIndex === index && projDrag.draggingIndex !== index;
                     return (
                       <div
                         key={proj.id}
-                        className="flex items-start gap-3 p-3 rounded-md border hover:bg-muted/50 cursor-pointer"
-                        onClick={() => toggleProject(ref)}
+                        draggable
+                        onDragStart={projDrag.onDragStart(index)}
+                        onDragOver={projDrag.onDragOver(index)}
+                        onDragEnd={projDrag.onDragEnd}
+                        onDragLeave={projDrag.onDragLeave}
+                        className={`flex items-start gap-3 p-3 rounded-md border hover:bg-muted/50 transition-all select-none ${
+                          isDragging ? "opacity-40 scale-[0.98]" : ""
+                        } ${isOver ? "border-primary border-dashed bg-primary/5" : ""}`}
                       >
+                        <div className="mt-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+                          <GripVertical className="h-5 w-5" />
+                        </div>
                         <Checkbox
                           checked={selectedProjects.includes(ref)}
                           onCheckedChange={() => toggleProject(ref)}
                         />
-                        <div className="flex-1">
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => toggleProject(ref)}
+                        >
                           <p className="font-medium">{proj.content.name || proj.key}</p>
                           <p className="text-sm text-muted-foreground">
-                            {proj.content.tech} • {proj.flavor} • v{proj.version}
+                            {Array.isArray(proj.content.tech)
+                              ? proj.content.tech.join(", ")
+                              : proj.content.tech}{" "}
+                            • {proj.flavor} • v{proj.version}
                           </p>
                         </div>
                       </div>
@@ -512,7 +621,7 @@ export default function GeneratePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Quick Download Dialog (for presets) */}
+      {/* Quick Download Dialog */}
       <Dialog open={quickDownloadOpen} onOpenChange={setQuickDownloadOpen}>
         <DialogContent>
           <DialogHeader>
