@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Sparkles, RefreshCw, Loader2 } from "lucide-react";
 
+const MIN_CHARS = 100;
+
 interface JDInputProps {
   jobDescription: string;
   onJobDescriptionChange: (value: string) => void;
@@ -20,6 +22,7 @@ interface JDInputProps {
   onAnalyze: () => void;
   isAnalyzing: boolean;
   hasAnalyzed: boolean;
+  apiKeyMissing?: boolean;
 }
 
 export function JDInput({
@@ -30,7 +33,25 @@ export function JDInput({
   onAnalyze,
   isAnalyzing,
   hasAnalyzed,
+  apiKeyMissing,
 }: JDInputProps) {
+  const trimmedLength = jobDescription.trim().length;
+  const belowThreshold = trimmedLength < MIN_CHARS;
+  const showCounter = trimmedLength > 0 && belowThreshold;
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    e.preventDefault();
+    const html = e.clipboardData.getData("text/html");
+    const text = e.clipboardData.getData("text/plain");
+    if (html) {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      onJobDescriptionChange(div.textContent ?? text);
+    } else {
+      onJobDescriptionChange(text);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -47,8 +68,14 @@ export function JDInput({
             placeholder="Paste the full job description here..."
             value={jobDescription}
             onChange={(e) => onJobDescriptionChange(e.target.value)}
+            onPaste={handlePaste}
             className="min-h-[200px] font-mono text-sm"
           />
+          {showCounter && (
+            <p className="text-xs text-muted-foreground">
+              {MIN_CHARS - trimmedLength} more characters needed for analysis
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -67,7 +94,7 @@ export function JDInput({
         <div className="flex gap-2">
           <Button
             onClick={onAnalyze}
-            disabled={isAnalyzing || !jobDescription.trim()}
+            disabled={isAnalyzing || belowThreshold || !!apiKeyMissing}
             className="flex-1 sm:flex-none"
           >
             {isAnalyzing ? (

@@ -14,27 +14,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { applicationsAPI, Application } from "@/lib/api";
 import { ExternalLink, Briefcase } from "lucide-react";
 import { LogApplicationDialog } from "@/components/log-application-dialog";
 
 const statusColors: Record<string, string> = {
   applied: "bg-blue-100 text-blue-800",
+  oa: "bg-orange-100 text-orange-800",
   phone_screen: "bg-yellow-100 text-yellow-800",
+  technical: "bg-indigo-100 text-indigo-800",
   interview: "bg-purple-100 text-purple-800",
+  onsite: "bg-cyan-100 text-cyan-800",
   offer: "bg-green-100 text-green-800",
   rejected: "bg-red-100 text-red-800",
+  ghosted: "bg-gray-100 text-gray-500",
   withdrawn: "bg-gray-100 text-gray-800",
 };
 
 const statusLabels: Record<string, string> = {
   applied: "Applied",
+  oa: "OA",
   phone_screen: "Phone Screen",
+  technical: "Technical",
   interview: "Interview",
+  onsite: "Onsite",
   offer: "Offer",
   rejected: "Rejected",
+  ghosted: "Ghosted",
   withdrawn: "Withdrawn",
 };
+
+const ALL_STATUSES = ["applied", "oa", "phone_screen", "technical", "interview", "onsite", "offer", "rejected", "ghosted", "withdrawn"];
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -49,6 +66,17 @@ export default function ApplicationsPage() {
       console.error("Failed to fetch applications:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      await applicationsAPI.update(id, { status: newStatus });
+      setApplications((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a))
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
     }
   };
 
@@ -101,12 +129,39 @@ export default function ApplicationsPage() {
         ))}
       </div>
 
+      {applications.length > 0 && (
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground px-1">
+          {(
+            [
+              ["applied", "phone_screen"],
+              ["applied", "oa"],
+              ["oa", "phone_screen"],
+              ["phone_screen", "technical"],
+              ["technical", "onsite"],
+              ["onsite", "offer"],
+            ] as [string, string][]
+          ).map(([from, to]) => {
+            const fromCount = statusCounts[from] || 0;
+            const toCount = statusCounts[to] || 0;
+            if (fromCount === 0 && toCount === 0) return null;
+            const rate = fromCount > 0 ? `${Math.round((toCount / fromCount) * 100)}%` : "—";
+            return (
+              <span key={`${from}-${to}`}>
+                {statusLabels[from]} → {statusLabels[to]}: <strong>{rate}</strong>
+              </span>
+            );
+          })}
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="all">All ({applications.length})</TabsTrigger>
           <TabsTrigger value="applied">Applied ({statusCounts["applied"] || 0})</TabsTrigger>
+          <TabsTrigger value="oa">OA ({statusCounts["oa"] || 0})</TabsTrigger>
           <TabsTrigger value="phone_screen">Phone Screen ({statusCounts["phone_screen"] || 0})</TabsTrigger>
-          <TabsTrigger value="interview">Interview ({statusCounts["interview"] || 0})</TabsTrigger>
+          <TabsTrigger value="technical">Technical ({statusCounts["technical"] || 0})</TabsTrigger>
+          <TabsTrigger value="onsite">Onsite ({statusCounts["onsite"] || 0})</TabsTrigger>
           <TabsTrigger value="offer">Offer ({statusCounts["offer"] || 0})</TabsTrigger>
           <TabsTrigger value="rejected">Rejected ({statusCounts["rejected"] || 0})</TabsTrigger>
         </TabsList>
@@ -143,9 +198,23 @@ export default function ApplicationsPage() {
                       <TableCell>{app.role}</TableCell>
                       <TableCell>{app.location || "-"}</TableCell>
                       <TableCell>
-                        <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
-                          {statusLabels[app.status] || app.status}
-                        </Badge>
+                        <Select
+                          value={app.status}
+                          onValueChange={(newStatus) => handleStatusChange(app.id, newStatus)}
+                        >
+                          <SelectTrigger className="w-auto border-none shadow-none p-0 h-auto focus:ring-0">
+                            <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
+                              {statusLabels[app.status] || app.status}
+                            </Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ALL_STATUSES.map((s) => (
+                              <SelectItem key={s} value={s}>
+                                {statusLabels[s] || s}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>{new Date(app.applied_at).toLocaleDateString()}</TableCell>
                       <TableCell>

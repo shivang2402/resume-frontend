@@ -42,6 +42,9 @@ export function MissingKeywords({ keywords }: MissingKeywordsProps) {
             </Badge>
           ))}
         </div>
+        <p className="text-xs text-muted-foreground mt-3">
+          These keywords were not found in your saved Content Sections — not necessarily skills you lack. Add or edit sections to improve your match score.
+        </p>
       </CardContent>
     </Card>
   );

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { applicationsAPI } from "@/lib/api";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,6 +34,7 @@ export function LogApplicationDialog({ onSuccess, trigger }: LogApplicationDialo
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [quickAdd, setQuickAdd] = useState(false);
   const [formData, setFormData] = useState({
     company: "",
     role: "",
@@ -95,6 +97,17 @@ export function LogApplicationDialog({ onSuccess, trigger }: LogApplicationDialo
           <DialogTitle>Log New Application</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex items-center gap-2 py-1 border-b pb-3">
+            <Checkbox
+              id="quickAdd"
+              checked={quickAdd}
+              onCheckedChange={(checked) => setQuickAdd(checked === true)}
+            />
+            <Label htmlFor="quickAdd" className="text-sm font-medium cursor-pointer">
+              Quick Add (company + role only)
+            </Label>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="company">Company *</Label>
             <Input
@@ -121,76 +134,83 @@ export function LogApplicationDialog({ onSuccess, trigger }: LogApplicationDialo
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
-              }
-              placeholder="e.g., San Francisco, CA"
-            />
-          </div>
+          {!quickAdd && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
+                  placeholder="e.g., San Francisco, CA"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="job_url">Job URL</Label>
-            <Input
-              id="job_url"
-              value={formData.job_url}
-              onChange={(e) =>
-                setFormData({ ...formData, job_url: e.target.value })
-              }
-              placeholder="https://..."
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="job_url">Job URL</Label>
+                <Input
+                  id="job_url"
+                  value={formData.job_url}
+                  onChange={(e) =>
+                    setFormData({ ...formData, job_url: e.target.value })
+                  }
+                  placeholder="https://..."
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={formData.status}
-              onValueChange={(value) =>
-                setFormData({ ...formData, status: value })
-              }
-            >
-              <SelectTrigger id="status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="applied">Applied</SelectItem>
-                <SelectItem value="phone_screen">Phone Screen</SelectItem>
-                <SelectItem value="interview">Interview</SelectItem>
-                <SelectItem value="offer">Offer</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="withdrawn">Withdrawn</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, status: value })
+                  }
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="applied">Applied</SelectItem>
+                    <SelectItem value="oa">Online Assessment (OA)</SelectItem>
+                    <SelectItem value="phone_screen">Phone Screen</SelectItem>
+                    <SelectItem value="technical">Technical</SelectItem>
+                    <SelectItem value="onsite">Onsite</SelectItem>
+                    <SelectItem value="offer">Offer</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="ghosted">Ghosted</SelectItem>
+                    <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="applied_at">Applied Date</Label>
-            <Input
-              id="applied_at"
-              type="date"
-              value={formData.applied_at}
-              onChange={(e) =>
-                setFormData({ ...formData, applied_at: e.target.value })
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="applied_at">Applied Date</Label>
+                <Input
+                  id="applied_at"
+                  type="date"
+                  value={formData.applied_at}
+                  onChange={(e) =>
+                    setFormData({ ...formData, applied_at: e.target.value })
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-              placeholder="Any additional notes..."
-              rows={3}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
+                  placeholder="Any additional notes..."
+                  rows={3}
+                />
+              </div>
+            </>
+          )}
 
           <div className="flex gap-2 justify-end">
             <Button

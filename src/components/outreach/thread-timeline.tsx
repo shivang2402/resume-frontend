@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Loader2, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Trash2, Loader2, ArrowUpRight, ArrowDownLeft, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AddConversationModal } from "./add-conversation-modal";
@@ -110,8 +110,15 @@ interface MessageItemProps {
 }
 
 function MessageItem({ message, onDelete }: MessageItemProps) {
+  const [copied, setCopied] = useState(false);
   const isSent = message.direction === "sent";
   const timestamp = message.message_at || message.created_at;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <Card
@@ -147,14 +154,29 @@ function MessageItem({ message, onDelete }: MessageItemProps) {
           </div>
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-        </Button>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleCopy}
+            title="Copy to clipboard"
+          >
+            {copied ? (
+              <Check className="h-4 w-4 text-green-600" />
+            ) : (
+              <Copy className="h-4 w-4 text-muted-foreground" />
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+          </Button>
+        </div>
       </div>
     </Card>
   );

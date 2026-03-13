@@ -35,7 +35,6 @@ interface ThreadCreateModalProps {
 const CONTACT_METHOD_LABELS: Record<ContactMethod, string> = {
   linkedin: "LinkedIn",
   email: "Email",
-  phone: "Phone",
   other: "Other",
 };
 

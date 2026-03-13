@@ -261,28 +261,28 @@ export interface Todo {
 }
 
 export const todosAPI = {
-  list: () => fetchAPI("/api/todos"),
+  list: () => fetchAPI<Todo[]>("/api/todos"),
   create: (text: string) =>
-    fetchAPI("/api/todos", {
+    fetchAPI<Todo>("/api/todos", {
       method: "POST",
       body: JSON.stringify({ text }),
     }),
   update: (id: string, data: { text?: string; is_done?: boolean; position?: number }) =>
-    fetchAPI(`/api/todos/${id}`, {
+    fetchAPI<Todo>(`/api/todos/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
   delete: (id: string) =>
-    fetchAPI(`/api/todos/${id}`, {
+    fetchAPI<void>(`/api/todos/${id}`, {
       method: "DELETE",
     }),
   reorder: (todoIds: string[]) =>
-    fetchAPI("/api/todos/reorder/bulk", {
+    fetchAPI<Todo[]>("/api/todos/reorder/bulk", {
       method: "PUT",
       body: JSON.stringify({ todo_ids: todoIds }),
     }),
   clearCompleted: () =>
-    fetchAPI("/api/todos/completed/clear", {
+    fetchAPI<void>("/api/todos/completed/clear", {
       method: "DELETE",
     }),
 };
@@ -303,20 +303,20 @@ export interface Contact {
 }
 
 export const contactsAPI = {
-  list: () => fetchAPI("/api/contacts"),
-  get: (id: string) => fetchAPI(`/api/contacts/${id}`),
+  list: () => fetchAPI<Contact[]>("/api/contacts"),
+  get: (id: string) => fetchAPI<Contact>(`/api/contacts/${id}`),
   create: (data: { name: string; fields: ContactField[] }) =>
-    fetchAPI("/api/contacts", {
+    fetchAPI<Contact>("/api/contacts", {
       method: "POST",
       body: JSON.stringify(data),
     }),
   update: (id: string, data: { name?: string; fields?: ContactField[] }) =>
-    fetchAPI(`/api/contacts/${id}`, {
+    fetchAPI<Contact>(`/api/contacts/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
   delete: (id: string) =>
-    fetchAPI(`/api/contacts/${id}`, {
+    fetchAPI<void>(`/api/contacts/${id}`, {
       method: "DELETE",
     }),
 };
@@ -336,20 +336,20 @@ export interface ResumePreset {
 }
 
 export const presetsAPI = {
-  list: () => fetchAPI("/api/resume-presets"),
-  get: (id: string) => fetchAPI(`/api/resume-presets/${id}`),
+  list: () => fetchAPI<ResumePreset[]>("/api/resume-presets"),
+  get: (id: string) => fetchAPI<ResumePreset>(`/api/resume-presets/${id}`),
   create: (data: { name: string; resume_config: any }) =>
-    fetchAPI("/api/resume-presets", {
+    fetchAPI<ResumePreset>("/api/resume-presets", {
       method: "POST",
       body: JSON.stringify(data),
     }),
   update: (id: string, data: { name?: string; resume_config?: any }) =>
-    fetchAPI(`/api/resume-presets/${id}`, {
+    fetchAPI<ResumePreset>(`/api/resume-presets/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
   delete: (id: string) =>
-    fetchAPI(`/api/resume-presets/${id}`, {
+    fetchAPI<void>(`/api/resume-presets/${id}`, {
       method: "DELETE",
     }),
 };

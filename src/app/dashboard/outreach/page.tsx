@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Plus, MessageSquare, FileText, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { ThreadsList } from "@/components/outreach/threads-list";
 import { ContactsList } from "@/components/outreach/contacts-list";
 import { OutreachTemplate, OutreachThread } from "@/types/outreach";
 
-export default function OutreachPage() {
+function OutreachPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isStepperOpen, setIsStepperOpen] = useState(false);
@@ -50,7 +50,7 @@ export default function OutreachPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Cold Outreach</h1>
-          <p className="text-muted-foreground">Generate personalized outreach messages and track conversations</p>
+          <p className="text-muted-foreground text-sm">Resume Forge composes messages for you to send manually via LinkedIn, email, or wherever you prefer. Nothing is sent automatically.</p>
         </div>
         <Button onClick={handleNewMessage}>
           <Plus className="mr-2 h-4 w-4" />
@@ -95,5 +95,13 @@ export default function OutreachPage() {
         onClose={handleStepperClose}
       />
     </div>
+  );
+}
+
+export default function OutreachPage() {
+  return (
+    <Suspense>
+      <OutreachPageInner />
+    </Suspense>
   );
 }

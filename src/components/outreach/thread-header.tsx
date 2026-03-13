@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { OutreachThread } from "@/types/outreach";
+import { OutreachThread, ContactMethod } from "@/types/outreach";
 import { outreachApi } from "@/lib/api/outreach";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export function ThreadHeader({ thread }: ThreadHeaderProps) {
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: (data: { contact_name?: string; contact_method?: string }) =>
+    mutationFn: (data: { contact_name?: string; contact_method?: ContactMethod }) =>
       outreachApi.updateThread(thread.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["outreach-thread", thread.id] });
@@ -53,7 +53,7 @@ export function ThreadHeader({ thread }: ThreadHeaderProps) {
   const handleSave = () => {
     updateMutation.mutate({
       contact_name: contactName || undefined,
-      contact_method: contactMethod || undefined,
+      contact_method: (contactMethod || undefined) as ContactMethod | undefined,
     });
   };
 

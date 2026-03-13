@@ -134,9 +134,9 @@ export default function ContentPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No content yet</h3>
+                <h3 className="text-lg font-medium mb-2">No Content Sections Yet</h3>
                 <p className="text-muted-foreground mb-4">
-                  Create your first section to get started
+                  Content Sections are the building blocks of your resume. Create one for each job, project, or skill set.
                 </p>
                 <CreateSectionDialog onCreated={handleSectionCreated} />
               </CardContent>

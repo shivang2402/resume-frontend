@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { hasGeminiApiKey, generateResume, updateSection } from "@/lib/api/jd-matcher";
 import { useJDAnalysis } from "./hooks/use-jd-analysis";
 import { useTempEdits } from "./hooks/use-temp-edits";
@@ -8,10 +9,11 @@ import { JDInput } from "./components/jd-input";
 import { SectionList } from "./components/section-list";
 import { MissingKeywords } from "./components/missing-keywords";
 import { ActionButtons } from "./components/action-buttons";
-import { NoApiKeyState } from "./components/no-api-key-state";
 import { EditModal } from "./components/edit-modal";
 import { SelectedSections, SectionContent } from "@/types/jd-matcher";
 import { toast } from "sonner";
+import { AlertTriangle, FileDown, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function JDMatcherPage() {
   const [hasKey, setHasKey] = useState(false);
@@ -168,16 +170,27 @@ export default function JDMatcherPage() {
     );
   }
 
-  if (!hasKey) {
-    return <NoApiKeyState />;
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">JD Matcher</h1>
         <p className="text-muted-foreground">AI-powered job description analysis and resume optimization</p>
       </div>
+
+      {!hasKey && (
+        <div className="flex items-start gap-3 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium">Gemini API Key Required</p>
+            <p className="mt-0.5">
+              AI features require your Gemini API key.{" "}
+              <Link href="/dashboard/settings" className="underline font-medium">
+                Configure it in Settings →
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
 
       <JDInput
         jobDescription={jobDescription}
@@ -187,6 +200,7 @@ export default function JDMatcherPage() {
         onAnalyze={handleAnalyze}
         isAnalyzing={isAnalyzing}
         hasAnalyzed={!!suggestions}
+        apiKeyMissing={!hasKey}
       />
 
       {allSections && (
@@ -211,6 +225,46 @@ export default function JDMatcherPage() {
             isGenerating={isGenerating}
             isSavingAll={isSavingAll}
           />
+
+          {suggestions && (
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              <p className="text-sm font-medium">Next Steps</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/dashboard/generate">
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Generate Resume with These Sections
+                  </Link>
+                </Button>
+                {suggestions.experiences.map((exp) => (
+                  <Button
+                    key={`exp-${exp.key}-${exp.flavor}`}
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                  >
+                    <Link href={`/dashboard/content/experience/${exp.key}/${exp.flavor}`}>
+                      <Pencil className="h-3 w-3 mr-1" />
+                      Edit {exp.key}
+                    </Link>
+                  </Button>
+                ))}
+                {suggestions.projects.map((proj) => (
+                  <Button
+                    key={`proj-${proj.key}-${proj.flavor}`}
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                  >
+                    <Link href={`/dashboard/content/project/${proj.key}/${proj.flavor}`}>
+                      <Pencil className="h-3 w-3 mr-1" />
+                      Edit {proj.key}
+                    </Link>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 

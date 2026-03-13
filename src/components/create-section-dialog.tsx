@@ -29,6 +29,7 @@ interface CreateSectionDialogProps {
 export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [duplicateError, setDuplicateError] = useState("");
   const [type, setType] = useState("experience");
   const [key, setKey] = useState("");
   const [flavor, setFlavor] = useState("default");
@@ -58,11 +59,12 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
 
   const handleSubmit = async () => {
     if (!key.trim()) {
-      alert("Key is required");
+      alert("Section Name is required");
       return;
     }
 
     setLoading(true);
+    setDuplicateError("");
     try {
       const section = await sectionsAPI.create({
         type,
@@ -73,9 +75,16 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
       onCreated?.(section);
       setOpen(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create section:", error);
-      alert("Failed to create section");
+      const msg: string = error?.message || "";
+      if (msg.includes("409") || msg.includes("already exists") || msg.includes("duplicate")) {
+        setDuplicateError(
+          "A section with this name and variant already exists. Edit the existing section or choose a different variant name."
+        );
+      } else {
+        alert("Failed to create section");
+      }
     } finally {
       setLoading(false);
     }
@@ -86,6 +95,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
     setKey("");
     setFlavor("default");
     setContent({ bullets: [""] });
+    setDuplicateError("");
   };
 
   return (
@@ -119,20 +129,22 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Key (unique identifier)</Label>
+              <Label>Section Name</Label>
               <Input
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
-                placeholder="e.g., amazon, google"
+                placeholder="e.g. amazon, google, personal-proj"
               />
+              <p className="text-xs text-muted-foreground">A short identifier for this employer or project</p>
             </div>
             <div className="space-y-2">
-              <Label>Flavor (variant)</Label>
+              <Label>Role Variant</Label>
               <Input
                 value={flavor}
                 onChange={(e) => setFlavor(e.target.value)}
-                placeholder="e.g., default, systems"
+                placeholder="e.g. systems, fullstack, ml, default"
               />
+              <p className="text-xs text-muted-foreground">Which type of role is this version tailored for? Use &quot;default&quot; if you only have one version</p>
             </div>
           </div>
 
@@ -308,6 +320,12 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
             </>
           )}
         </div>
+
+        {duplicateError && (
+          <p className="text-sm text-destructive border border-destructive/30 bg-destructive/10 rounded-md px-3 py-2">
+            {duplicateError}
+          </p>
+        )}
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>

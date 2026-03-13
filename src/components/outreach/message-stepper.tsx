@@ -28,6 +28,13 @@ interface MessageStepperProps {
 
 type Step = 1 | 2 | 3;
 
+function interpolateTemplate(content: string, vars: Record<string, string>): string {
+  return content
+    .replace(/\[Contact Name\]/gi, vars.contactName ?? "[Contact Name]")
+    .replace(/\[Company\]/gi, vars.company ?? "[Company]")
+    .replace(/\[Role\]/gi, vars.role ?? "[Role]");
+}
+
 export function MessageStepper({ open, onClose }: MessageStepperProps) {
   const [step, setStep] = useState<Step>(1);
 
@@ -83,7 +90,7 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
         jd_text: jdText || undefined,
         application_id: selectedAppId,
       });
-      setGeneratedMessage(response.message);
+      setGeneratedMessage(interpolateTemplate(response.message, { company }));
       setStep(3);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate message");
