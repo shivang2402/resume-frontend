@@ -21,12 +21,15 @@ export default function ThreadDetailPage({ params }: PageProps) {
   const { data: thread, isLoading, error } = useQuery({
     queryKey: ["outreach-thread", id],
     queryFn: () => outreachApi.threads.get(id),
+    refetchOnWindowFocus: true,
   });
 
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ["outreach-messages", id],
     queryFn: () => outreachApi.getMessages(id),
     enabled: !!thread,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
   });
 
   if (isLoading) {

@@ -72,7 +72,7 @@ export function JDInput({
             className="min-h-[200px] font-mono text-sm"
           />
           {showCounter && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-amber-700 dark:text-amber-400">
               {MIN_CHARS - trimmedLength} more characters needed for analysis
             </p>
           )}

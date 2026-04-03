@@ -146,9 +146,9 @@ export function BulkImportDialog({ onImported }: BulkImportDialogProps) {
           {results && (
             <div className="p-3 rounded-md bg-muted">
               <p className="text-sm">
-                <span className="text-green-600 font-medium">{results.success} imported</span>
+                <span className="text-green-700 dark:text-green-400 font-medium">{results.success} imported</span>
                 {results.failed > 0 && (
-                  <span className="text-red-600 font-medium ml-2">{results.failed} failed</span>
+                  <span className="text-red-700 dark:text-red-400 font-medium ml-2">{results.failed} failed</span>
                 )}
               </p>
             </div>

@@ -18,10 +18,10 @@ export function MissingKeywords({ keywords }: MissingKeywordsProps) {
   };
 
   return (
-    <Card className="border-yellow-200 bg-yellow-50/50">
+    <Card className="border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-yellow-600" />
+        <CardTitle className="text-lg flex items-center gap-2 text-amber-800 dark:text-amber-200">
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           Missing Keywords ({keywords.length})
         </CardTitle>
       </CardHeader>
@@ -34,7 +34,7 @@ export function MissingKeywords({ keywords }: MissingKeywordsProps) {
             <Badge
               key={kw}
               variant="outline"
-              className="cursor-pointer hover:bg-yellow-100 gap-1 py-1.5"
+              className="cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900 gap-1 py-1.5"
               onClick={() => handleCopy(kw)}
             >
               {kw}

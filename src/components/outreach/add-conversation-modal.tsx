@@ -185,8 +185,8 @@ export function AddConversationModal({
           // Preview parsed messages
           <div className="space-y-4">
             {duplicateCount > 0 && (
-              <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 rounded-md text-sm">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <div className="flex items-center gap-2 p-3 border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 rounded-md text-sm">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>
                   {duplicateCount} message{duplicateCount !== 1 ? "s" : ""} already exist and will be skipped.
                 </span>
@@ -290,7 +290,9 @@ export function AddConversationModal({
                   </p>
                 </div>
                 {parseError && (
-                  <p className="text-sm text-destructive">{parseError}</p>
+                  <div className="flex items-center gap-2 p-3 border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-200 rounded-md text-sm">
+                    {parseError}
+                  </div>
                 )}
               </TabsContent>
             </Tabs>

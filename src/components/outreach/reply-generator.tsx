@@ -46,9 +46,9 @@ export function ReplyGenerator({ threadId }: ReplyGeneratorProps) {
       <h2 className="text-lg font-medium">Generate Reply</h2>
 
       {!hasApiKey && (
-        <p className="text-sm text-amber-600 dark:text-amber-400">
-          ⚠️ Gemini API key not configured. Add it in settings to use AI features.
-        </p>
+        <div className="flex items-center gap-2 p-3 border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-200 rounded-md text-sm">
+          <span>Gemini API key not configured. Add it in <a href="/dashboard/settings" className="underline font-medium">Settings</a> to use AI features.</span>
+        </div>
       )}
 
       <div className="space-y-2">
@@ -78,9 +78,9 @@ export function ReplyGenerator({ threadId }: ReplyGeneratorProps) {
       </Button>
 
       {generateMutation.error && (
-        <p className="text-sm text-destructive">
+        <div className="flex items-center gap-2 p-3 border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-200 rounded-md text-sm">
           {generateMutation.error.message}
-        </p>
+        </div>
       )}
 
       {generatedReply && (

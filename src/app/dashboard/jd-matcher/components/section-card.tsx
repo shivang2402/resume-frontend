@@ -94,7 +94,7 @@ export function SectionCard({
               </Badge>
 
               {hasTempEdit && (
-                <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                <Badge variant="secondary" className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200">
                   not saved to library
                 </Badge>
               )}

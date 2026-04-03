@@ -48,9 +48,9 @@ export function StepPreview({
   const isOverLimit = charCount > limit;
   const charCountColor = isOverLimit
     ? strict
-      ? "text-destructive"
-      : "text-yellow-600"
-    : "text-green-600";
+      ? "text-red-700 dark:text-red-400"
+      : "text-amber-700 dark:text-amber-400"
+    : "text-green-700 dark:text-green-400";
 
   const handleCopy = () => {
     onCopy();

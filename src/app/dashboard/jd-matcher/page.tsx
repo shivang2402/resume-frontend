@@ -178,7 +178,7 @@ export default function JDMatcherPage() {
       </div>
 
       {!hasKey && (
-        <div className="flex items-start gap-3 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+        <div className="flex items-start gap-3 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <div>
             <p className="font-medium">Gemini API Key Required</p>
@@ -205,6 +205,46 @@ export default function JDMatcherPage() {
 
       {allSections && (
         <>
+          {allSections.skills.length === 0 && (
+            <div className="flex items-start gap-3 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 px-4 py-3 text-sm text-red-800 dark:text-red-200">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">No Skills Found</p>
+                <p className="mt-0.5">
+                  Your content library has no skills sections. Add skills in the{" "}
+                  <Link href="/dashboard/content" className="underline font-medium">Content Library</Link>{" "}
+                  to include them in your resume.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {allSections.experiences.length === 0 && allSections.projects.length === 0 && (
+            <div className="flex items-start gap-3 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 px-4 py-3 text-sm text-red-800 dark:text-red-200">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">No Experiences or Projects Found</p>
+                <p className="mt-0.5">
+                  Add experiences and projects in the{" "}
+                  <Link href="/dashboard/content" className="underline font-medium">Content Library</Link>{" "}
+                  before analyzing a job description.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {suggestions && suggestions.experiences.length === 0 && suggestions.projects.length === 0 && (allSections.experiences.length > 0 || allSections.projects.length > 0) && (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">No Matching Sections</p>
+                <p className="mt-0.5">
+                  None of your sections matched this job description well. You can still manually select sections below, or add more tailored content to your library.
+                </p>
+              </div>
+            </div>
+          )}
+
           <MissingKeywords keywords={missingKeywords} />
 
           <SectionList

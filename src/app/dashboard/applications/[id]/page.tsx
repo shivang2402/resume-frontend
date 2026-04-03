@@ -19,10 +19,14 @@ import { ArrowLeft, ExternalLink, Trash2, Save, Download, Loader2 } from "lucide
 
 const statusLabels: Record<string, string> = {
   applied: "Applied",
+  oa: "OA",
   phone_screen: "Phone Screen",
+  technical: "Technical",
   interview: "Interview",
+  onsite: "Onsite",
   offer: "Offer",
   rejected: "Rejected",
+  ghosted: "Ghosted",
   withdrawn: "Withdrawn",
 };
 

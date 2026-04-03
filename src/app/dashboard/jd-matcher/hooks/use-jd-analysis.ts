@@ -38,7 +38,20 @@ export function useJDAnalysis() {
         setAllSections(response.all_sections);
         setMissingKeywords(response.missing_keywords || []);
 
-        toast.success("Analysis complete!");
+        // Warn about missing content
+        const allSec = response.all_sections;
+        if (allSec.skills.length === 0) {
+          toast.warning("No skills sections found in your content library. Add skills to improve matching.");
+        }
+        if (allSec.experiences.length === 0 && allSec.projects.length === 0) {
+          toast.warning("No experiences or projects found. Add content to your library first.");
+        }
+        if (response.suggestions.experiences.length === 0 && response.suggestions.projects.length === 0) {
+          toast.warning("No matching sections found for this JD. Try adding more content or adjusting your library.");
+        } else {
+          toast.success("Analysis complete!");
+        }
+
         return response;
       } catch (err: any) {
         const message = err.message || "Analysis failed";
@@ -48,6 +61,8 @@ export function useJDAnalysis() {
           toast.error("Invalid API key. Please check your settings.");
         } else if (message.includes("429") || message.includes("rate")) {
           toast.error("Rate limit exceeded. Try again later.");
+        } else if (message.includes("No content found") || message.includes("Add sections")) {
+          toast.error("No content found in your library. Please add experiences, projects, or skills first.");
         } else {
           toast.error(message);
         }

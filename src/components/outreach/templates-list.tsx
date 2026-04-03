@@ -65,7 +65,7 @@ export function TemplatesList({ onUseTemplate }: TemplatesListProps) {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-destructive">Failed to load templates</p>
+        <p className="text-red-700 dark:text-red-400">Failed to load templates</p>
         <Button variant="outline" className="mt-4" onClick={() => queryClient.invalidateQueries({ queryKey: ["outreach-templates"] })}>
           Retry
         </Button>

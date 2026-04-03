@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,14 @@ export function EditModal({
   const [content, setContent] = useState<SectionContent>(initialContent);
   const [saveMode, setSaveMode] = useState<"temp" | "library">("temp");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Reset content when modal opens with new data
+  useEffect(() => {
+    if (open) {
+      setContent(initialContent);
+      setSaveMode("temp");
+    }
+  }, [open, initialContent]);
 
   const handleBulletChange = (index: number, value: string) => {
     const newBullets = [...content.bullets];

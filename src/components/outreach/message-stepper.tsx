@@ -178,8 +178,8 @@ export function MessageStepper({ open, onClose }: MessageStepperProps) {
 
           {/* Error Display */}
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-md">
-              <AlertCircle className="h-4 w-4" />
+            <div className="flex items-center gap-2 p-3 border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-200 rounded-md">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span className="text-sm">{error}</span>
             </div>
           )}

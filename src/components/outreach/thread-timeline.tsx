@@ -163,7 +163,7 @@ function MessageItem({ message, onDelete }: MessageItemProps) {
             title="Copy to clipboard"
           >
             {copied ? (
-              <Check className="h-4 w-4 text-green-600" />
+              <Check className="h-4 w-4 text-green-700 dark:text-green-400" />
             ) : (
               <Copy className="h-4 w-4 text-muted-foreground" />
             )}

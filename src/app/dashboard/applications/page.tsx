@@ -15,27 +15,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { applicationsAPI, Application } from "@/lib/api";
-import { ExternalLink, Briefcase } from "lucide-react";
+import { ExternalLink, Briefcase, ChevronDown, Check } from "lucide-react";
+import { toast } from "sonner";
 import { LogApplicationDialog } from "@/components/log-application-dialog";
 
 const statusColors: Record<string, string> = {
-  applied: "bg-blue-100 text-blue-800",
-  oa: "bg-orange-100 text-orange-800",
-  phone_screen: "bg-yellow-100 text-yellow-800",
-  technical: "bg-indigo-100 text-indigo-800",
-  interview: "bg-purple-100 text-purple-800",
-  onsite: "bg-cyan-100 text-cyan-800",
-  offer: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
-  ghosted: "bg-gray-100 text-gray-500",
-  withdrawn: "bg-gray-100 text-gray-800",
+  applied: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+  oa: "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200",
+  phone_screen: "bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200",
+  technical: "bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200",
+  interview: "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200",
+  onsite: "bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200",
+  offer: "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
+  rejected: "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200",
+  ghosted: "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400",
+  withdrawn: "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200",
 };
 
 const statusLabels: Record<string, string> = {
@@ -75,8 +75,10 @@ export default function ApplicationsPage() {
       setApplications((prev) =>
         prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a))
       );
+      toast.success(`Status updated to ${statusLabels[newStatus] || newStatus}`);
     } catch (error) {
       console.error("Failed to update status:", error);
+      toast.error("Failed to update status");
     }
   };
 
@@ -198,23 +200,31 @@ export default function ApplicationsPage() {
                       <TableCell>{app.role}</TableCell>
                       <TableCell>{app.location || "-"}</TableCell>
                       <TableCell>
-                        <Select
-                          value={app.status}
-                          onValueChange={(newStatus) => handleStatusChange(app.id, newStatus)}
-                        >
-                          <SelectTrigger className="w-auto border-none shadow-none p-0 h-auto focus:ring-0">
-                            <Badge className={statusColors[app.status] || "bg-gray-100 text-gray-800"}>
-                              {statusLabels[app.status] || app.status}
-                            </Badge>
-                          </SelectTrigger>
-                          <SelectContent>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="cursor-pointer focus:outline-none">
+                              <Badge className={`${statusColors[app.status] || "bg-gray-100 text-gray-800"} gap-1`}>
+                                {statusLabels[app.status] || app.status}
+                                <ChevronDown className="h-3 w-3" />
+                              </Badge>
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
                             {ALL_STATUSES.map((s) => (
-                              <SelectItem key={s} value={s}>
-                                {statusLabels[s] || s}
-                              </SelectItem>
+                              <DropdownMenuItem
+                                key={s}
+                                onClick={() => handleStatusChange(app.id, s)}
+                                className="flex items-center justify-between gap-4"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className={`inline-block h-2 w-2 rounded-full ${statusColors[s]?.split(" ")[0] || "bg-gray-100"}`} />
+                                  {statusLabels[s] || s}
+                                </div>
+                                {app.status === s && <Check className="h-4 w-4" />}
+                              </DropdownMenuItem>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                       <TableCell>{new Date(app.applied_at).toLocaleDateString()}</TableCell>
                       <TableCell>

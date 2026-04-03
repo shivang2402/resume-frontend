@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { sectionsAPI, Section } from "@/lib/api";
 import { Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface CreateSectionDialogProps {
   onCreated?: (section: Section) => void;
@@ -59,8 +60,55 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
 
   const handleSubmit = async () => {
     if (!key.trim()) {
-      alert("Section Name is required");
+      toast.error("Section Name is required");
       return;
+    }
+
+    if (type === "experience") {
+      if (!content.title?.trim()) {
+        toast.error("Title is required for experience sections");
+        return;
+      }
+      if (!content.company?.trim()) {
+        toast.error("Company is required for experience sections");
+        return;
+      }
+      const nonEmptyBullets = (content.bullets || []).filter((b: string) => b.trim());
+      if (nonEmptyBullets.length === 0) {
+        toast.error("Add at least one bullet point");
+        return;
+      }
+    }
+
+    if (type === "project") {
+      if (!content.name?.trim()) {
+        toast.error("Project Name is required");
+        return;
+      }
+      const nonEmptyBullets = (content.bullets || []).filter((b: string) => b.trim());
+      if (nonEmptyBullets.length === 0) {
+        toast.error("Add at least one bullet point");
+        return;
+      }
+    }
+
+    if (type === "skills") {
+      const hasAny = content.languages?.trim() || content.frameworks?.trim() || content.tools?.trim();
+      if (!hasAny) {
+        toast.error("Add at least one skill category (languages, frameworks, or tools)");
+        return;
+      }
+    }
+
+    if (type === "education") {
+      if (!content.degree?.trim()) {
+        toast.error("Degree is required for education sections");
+        return;
+      }
+      if (!content.school?.trim()) {
+        toast.error("School is required for education sections");
+        return;
+      }
     }
 
     setLoading(true);
@@ -83,7 +131,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
           "A section with this name and variant already exists. Edit the existing section or choose a different variant name."
         );
       } else {
-        alert("Failed to create section");
+        toast.error("Failed to create section");
       }
     } finally {
       setLoading(false);
@@ -129,7 +177,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Section Name</Label>
+              <Label>Section Name *</Label>
               <Input
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
@@ -153,7 +201,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Title</Label>
+                  <Label>Title *</Label>
                   <Input
                     value={content.title || ""}
                     onChange={(e) => handleContentChange("title", e.target.value)}
@@ -161,7 +209,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Company</Label>
+                  <Label>Company *</Label>
                   <Input
                     value={content.company || ""}
                     onChange={(e) => handleContentChange("company", e.target.value)}
@@ -194,7 +242,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
           {type === "project" && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Project Name</Label>
+                <Label>Project Name *</Label>
                 <Input
                   value={content.name || ""}
                   onChange={(e) => handleContentChange("name", e.target.value)}
@@ -215,7 +263,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
           {/* Bullets for experience and project */}
           {(type === "experience" || type === "project") && (
             <div className="space-y-2">
-              <Label>Bullet Points</Label>
+              <Label>Bullet Points *</Label>
               {(content.bullets || []).map((bullet: string, index: number) => (
                 <div key={index} className="flex gap-2">
                   <Textarea
@@ -243,6 +291,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
           {/* Skills Fields */}
           {type === "skills" && (
             <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">Fill in at least one category below.</p>
               <div className="space-y-2">
                 <Label>Languages</Label>
                 <Input
@@ -275,7 +324,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Degree</Label>
+                  <Label>Degree *</Label>
                   <Input
                     value={content.degree || ""}
                     onChange={(e) => handleContentChange("degree", e.target.value)}
@@ -283,7 +332,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>School</Label>
+                  <Label>School *</Label>
                   <Input
                     value={content.school || ""}
                     onChange={(e) => handleContentChange("school", e.target.value)}
@@ -322,7 +371,7 @@ export function CreateSectionDialog({ onCreated }: CreateSectionDialogProps) {
         </div>
 
         {duplicateError && (
-          <p className="text-sm text-destructive border border-destructive/30 bg-destructive/10 rounded-md px-3 py-2">
+          <p className="text-sm border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-200 rounded-md px-3 py-2">
             {duplicateError}
           </p>
         )}

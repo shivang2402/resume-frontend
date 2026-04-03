@@ -88,7 +88,7 @@ export function ThreadCreateModal({
 
         <div className="space-y-4 py-4">
           {error && (
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-200 rounded-md px-3 py-2">{error}</p>
           )}
 
           <div className="space-y-2">

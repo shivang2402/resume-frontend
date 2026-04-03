@@ -43,11 +43,11 @@ export default function DashboardPage() {
   const recentApps = applications.slice(0, 5);
 
   const statusColors: Record<string, string> = {
-    applied: "bg-blue-100 text-blue-800",
-    phone_screen: "bg-yellow-100 text-yellow-800",
-    interview: "bg-purple-100 text-purple-800",
-    offer: "bg-green-100 text-green-800",
-    rejected: "bg-red-100 text-red-800",
+    applied: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+    phone_screen: "bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200",
+    interview: "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200",
+    offer: "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
+    rejected: "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200",
   };
 
   return (
